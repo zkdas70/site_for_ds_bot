@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+ {% if is_login %}
+        <div>
+            {{ username }}<br>
+            {{ coins }}<br>
+            {{ status }}<br>
+            {{ servers }}
+            {% for item in servers %}
+                <h2>{{item["server"]}}</h2>
+                <div>{{item["coins"]}}</div>
+            {% endfor %}
+        </div>
+ {% else %}
+       <div>
+           <a class="btn btn-primary " href="/register">Зарегистрироваться</a>
+           <br>
+           <a class="btn btn-success" href="/login">Войти</a>
+       </div>
+ {% endif %}
+{% endblock %}
