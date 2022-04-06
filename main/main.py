@@ -26,7 +26,7 @@ def load_user(user_id):
 
 
 @app.route("/")
-def index():
+def index(): # опа а где sql?
     servers = [
         {
             'server': 'test',
