@@ -3,10 +3,11 @@
 {% block content %}
  {% if is_login %}
         <div>
+            {% if status != None %}
+                {{ status }}
+            {% endif %}
             {{ username }}<br>
             {{ coins }}<br>
-            {{ status }}<br>
-            {{ servers }}
             {% for item in servers %}
                 <h2>{{item["server"]}}</h2>
                 <div>{{item["coins"]}}</div>
