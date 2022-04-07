@@ -6,17 +6,25 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
 
+users_to_servers = sa.Table(
+    'users_to_servers',
+    SqlAlchemyBase.metadata,
+    sa.Column('users', sa.Integer, sa.ForeignKey('users.id')),
+    sa.Column('server', sa.Integer, sa.ForeignKey('servers.id')),
+    sa.Column('coins', sa.Float(0), nullable=False),
+    sa.Column('coins_cange', sa.Float(0), nullable=False),
+    sa.Column('is_admin', sa.Boolean(False), nullable=False),
+)
 
-class User(SqlAlchemyBase, UserMixin, SerializerMixin):
+
+class users_default(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'users_default'
-
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.String, nullable=True)
     tag = sa.Column(sa.String, index=True, unique=True, nullable=True)
     email = sa.Column(sa.String, nullable=True)
     hashed_password = sa.Column(sa.String, default=None)
     created_date = sa.Column(sa.DateTime, default=datetime.datetime.now())
-    news = orm.relation("News", back_populates="user")
 
     def __repr__(self):
         return f'<User name="{self.name}" id={self.id}>'
