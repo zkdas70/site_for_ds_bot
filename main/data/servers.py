@@ -8,7 +8,10 @@ from sqlalchemy_serializer import SerializerMixin
 
 users_to_servers = orm.relation("users_to_servers",
                                 secondary="users",
-                                backref="server",)
+                                backref="server", )
+task_to_servers = orm.relation("task_to_servers",
+                               secondary="task",
+                               backref="server", )
 
 
 class servers(SqlAlchemyBase, UserMixin, SerializerMixin):

@@ -22,7 +22,7 @@ class users_default(SqlAlchemyBase, UserMixin, SerializerMixin):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.String, nullable=True)
     tag = sa.Column(sa.String, index=True, unique=True, nullable=True)
-    email = sa.Column(sa.String, nullable=True)
+    email = sa.Column(sa.String, nullable=True, unique=True)
     hashed_password = sa.Column(sa.String, default=None)
     created_date = sa.Column(sa.DateTime, default=datetime.datetime.now())
 
