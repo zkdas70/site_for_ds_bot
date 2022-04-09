@@ -1,9 +1,10 @@
 from flask import Flask, render_template, redirect, request, make_response, \
     session, abort, jsonify
 from data import db_session, news_api
+from data.users_default import users_default
 from data.users import User
 from data.news import News
-from forms.user import RegisterForm, LoginForm
+from forms.user import RegisterForm, LoginForm, RegisterFormDefault
 from forms.news import NewsForm
 from flask_login import LoginManager, login_user, current_user, logout_user, \
     login_required
@@ -26,7 +27,7 @@ def load_user(user_id):
 
 
 @app.route("/")
-def index(): # опа а где sql?
+def index():  # опа а где sql?
     servers = [
         {
             'server': 'test',
@@ -46,29 +47,42 @@ def index(): # опа а где sql?
     return render_template("index.html", **param)
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def reqister():
-    form = RegisterForm()
+@app.route('/reg', methods=['GET', 'POST'])
+def reqister_user():
+    invalid_characters_in_field = {'@', '"', "'", '!', '?', '/', '\\', '|', ',', '.',
+                                   '!', '=', '-', '+', '&', '%', '$', ':', ';', '*'}
+    form = RegisterFormDefault()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
-            return render_template('register.html', title='Регистрация',
+            return render_template('register_default.html', title='Регистрация',
                                    form=form,
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
-        if db_sess.query(User).filter(User.email == form.email.data).first():
-            return render_template('register.html', title='Регистрация',
+        if db_sess.query(users_default).filter(users_default.tag == form.tag.data).first():
+            return render_template('register_default.html', title='Регистрация',
                                    form=form,
                                    message="Такой пользователь уже есть")
-        user = User(
-            name=form.name.data,
-            email=form.email.data,
-            about=form.about.data
+        if len(form.tag.data.split('#')) != 2 or len(form.tag.data.split('#')[1]) != 4:
+            return render_template('register_default.html', title='Регистрация',
+                                   form=form,
+                                   message="введите дискорд ник и тег (имя#0000)")
+        if not str(form.tag.data.split('#')[1]).isdigit():
+            return render_template('register_default.html', title='Регистрация',
+                                   form=form,
+                                   message="некоректныйй тэг")
+        if set(list(form.tag.data)) & invalid_characters_in_field:
+            return render_template('register_default.html', title='Регистрация',
+                                   form=form,
+                                   message="введите коректный дискорд ник")
+        user = users_default(
+            tag=form.tag.data,
+            name=form.tag.data.split('#')[0],
         )
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
         return redirect('/login')
-    return render_template('register.html', title='Регистрация', form=form)
+    return render_template('register_default.html', title='Регистрация', form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
