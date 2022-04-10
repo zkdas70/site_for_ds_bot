@@ -9,8 +9,8 @@
             {{ username }}<br>
             {{ coins }}<br>
             {% for item in servers %}
-                <h2>{{item["server"]}}</h2>
-                <div>{{item["coins"]}}</div>
+                <h2>{{item}}</h2>
+                <div>{{servers[item]}}</div>
             {% endfor %}
         </div>
  {% else %}

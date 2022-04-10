@@ -11,6 +11,3 @@ class Servers(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'servers'
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.String, nullable=True)
-
-    def __repr__(self):
-        return f'<server name="{self.name}" id={self.id}>'

@@ -34,8 +34,11 @@ def index():  # опа а где sql?
     if current_user.is_authenticated:
         db_sess = db_session.create_session()
         user_name = current_user.name
-        servers = dict()
-        #print(db_sess.query(users_default).filter(users_default.tag=='zkda#0000').first())
+        servers = dict() #ansver.server
+        for ansver in db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id).all():
+            server_name = db_sess.query(Servers).filter(Servers.id == ansver.server).first().name
+            server_coins = ansver.coins + ansver.coins_cange
+            servers[server_name] = server_coins
         param['is_login'] = current_user.is_authenticated
         param['username'] = user_name
         param['servers'] = servers
@@ -102,73 +105,6 @@ def login():
 def logout():
     logout_user()
     return redirect("/")
-
-
-# @app.route('/news', methods=['GET', 'POST'])
-# @login_required
-# def add_news():
-#     form = NewsForm()
-#     if form.validate_on_submit():
-#         db_sess = db_session.create_session()
-#         news = News()
-#         news.title = form.title.data
-#         news.content = form.content.data
-#         news.is_private = form.is_private.data
-#         current_user.news.append(news)
-#         db_sess.merge(current_user)
-#         db_sess.commit()
-#         return redirect('/')
-#     return render_template('news.html', title='Добавление новости',
-#                            form=form)
-
-
-# @app.route('/news/<int:id>', methods=['GET', 'POST'])
-# @login_required
-# def edit_news(id):
-#     form = NewsForm()
-#     if request.method == "GET":
-#         db_sess = db_session.create_session()
-#         news = db_sess.query(News).filter(News.id == id,
-#                                           News.user == current_user
-#                                           ).first()
-#         if news:
-#             form.title.data = news.title
-#             form.content.data = news.content
-#             form.is_private.data = news.is_private
-#         else:
-#             abort(404)
-#     if form.validate_on_submit():
-#         db_sess = db_session.create_session()
-#         news = db_sess.query(News).filter(News.id == id,
-#                                           News.user == current_user
-#                                           ).first()
-#         if news:
-#             news.title = form.title.data
-#             news.content = form.content.data
-#             news.is_private = form.is_private.data
-#             db_sess.commit()
-#             return redirect('/')
-#         else:
-#             abort(404)
-#     return render_template('news.html',
-#                            title='Редактирование новости',
-#                            form=form
-#                            )
-
-
-# @app.route('/news_delete/<int:id>')
-# @login_required
-# def news_delete(id):
-#     db_sess = db_session.create_session()
-#     news = db_sess.query(News).filter(News.id == id,
-#                                       News.user == current_user
-#                                       ).first()
-#     if news:
-#         db_sess.delete(news)
-#         db_sess.commit()
-#     else:
-#         abort(404)
-#     return redirect('/')
 
 
 @app.errorhandler(404)
