@@ -9,7 +9,7 @@ from sqlalchemy_serializer import SerializerMixin
 users_to_servers = sa.Table(
     'users_to_servers',
     SqlAlchemyBase.metadata,
-    sa.Column('users', sa.Integer, sa.ForeignKey('users.id')),
+    sa.Column('users', sa.Integer, sa.ForeignKey('users_default.id')),
     sa.Column('server', sa.Integer, sa.ForeignKey('servers.id')),
     sa.Column('coins', sa.Float(0), nullable=False),
     sa.Column('coins_cange', sa.Float(0), nullable=False),

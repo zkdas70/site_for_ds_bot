@@ -1,10 +1,9 @@
 from flask import Flask, render_template, redirect, request, make_response, \
     session, abort, jsonify
 from data import db_session, news_api
-from data.users_default import users_default
-from data.users import User
+from data.users_default import users_default, users_to_servers
 from data.news import News
-from forms.user import RegisterForm, LoginForm, RegisterFormDefault
+from forms.user import LoginFormDefault, RegisterFormDefault
 from forms.news import NewsForm
 from flask_login import LoginManager, login_user, current_user, logout_user, \
     login_required
@@ -23,31 +22,26 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
-    return db_sess.query(User).get(user_id)
+    return db_sess.query(users_default).get(user_id)
 
 
 @app.route("/")
 def index():  # опа а где sql?
-    servers = [
-        {
-            'server': 'test',
-            'coins': '111'
-        }
-    ]
     param = {}
-    param['is_login'] = current_user.is_authenticated
-    param['username'] = "Ученик Яндекс.Лицея"
-    param['servers'] = servers
-    param['status'] = None
-    db_sess = db_session.create_session()
     if current_user.is_authenticated:
-        pass
-    else:
-        pass
+        db_sess = db_session.create_session()
+        user_name = current_user.name
+        servers = dict()
+        print(db_sess.query(users_to_servers).filter(users_to_servers.users == 8).first())
+        #print(db_sess.query(users_default).filter(users_default.tag=='zkda#0000').first())
+        param['is_login'] = current_user.is_authenticated
+        param['username'] = user_name
+        param['servers'] = servers
+        param['status'] = None
     return render_template("index.html", **param)
 
 
-@app.route('/reg', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def reqister_user():
     invalid_characters_in_field = {'@', '"', "'", '!', '?', '/', '\\', '|', ',', '.',
                                    '!', '=', '-', '+', '&', '%', '$', ':', ';', '*'}
@@ -87,18 +81,18 @@ def reqister_user():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
+    form = LoginFormDefault()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(
-            User.email == form.email.data).first()
+        user = db_sess.query(users_default).filter(
+            users_default.tag == form.tag.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
-        return render_template('login.html',
+        return render_template('login_default.html',
                                message="Неправильный логин или пароль",
                                form=form)
-    return render_template('login.html', title='Авторизация', form=form)
+    return render_template('login_default.html', title='Авторизация', form=form)
 
 
 @app.route('/logout')

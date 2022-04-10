@@ -28,7 +28,7 @@ class RegisterFormDefault(FlaskForm):
 
 
 class LoginFormDefault(FlaskForm):
-    email = EmailField('Почта', validators=[DataRequired()])
+    tag = StringField('Discord (имя#0000)', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     remember_me = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
