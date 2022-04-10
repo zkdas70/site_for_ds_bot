@@ -1,0 +1,17 @@
+import datetime
+import sqlalchemy as sa
+from sqlalchemy import orm
+from .db_session import SqlAlchemyBase
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+from sqlalchemy_serializer import SerializerMixin
+
+
+class UsersToServers(SqlAlchemyBase, UserMixin, SerializerMixin):
+    __tablename__ = 'users_to_servers'
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    server = sa.Column(sa.Integer, sa.ForeignKey('servers.id'))
+    users = sa.Column(sa.Integer, sa.ForeignKey('users_default.id'))
+    coins = sa.Column(sa.Float, nullable=False, default=0)
+    coins_cange = sa.Column(sa.Float, nullable=False, default=0)
+    is_admin = sa.Column(sa.Boolean, default=False, nullable=False)

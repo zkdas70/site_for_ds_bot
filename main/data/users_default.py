@@ -6,18 +6,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
 
-users_to_servers = sa.Table(
-    'users_to_servers',
-    SqlAlchemyBase.metadata,
-    sa.Column('users', sa.Integer, sa.ForeignKey('users_default.id')),
-    sa.Column('server', sa.Integer, sa.ForeignKey('servers.id')),
-    sa.Column('coins', sa.Float(0), nullable=False),
-    sa.Column('coins_cange', sa.Float(0), nullable=False),
-    sa.Column('is_admin', sa.Boolean(False), nullable=False),
-)
 
-
-class users_default(SqlAlchemyBase, UserMixin, SerializerMixin):
+class UsersDefault(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'users_default'
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.String, nullable=True)
