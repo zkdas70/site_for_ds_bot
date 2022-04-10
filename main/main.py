@@ -34,7 +34,7 @@ def index():  # опа а где sql?
     if current_user.is_authenticated:
         db_sess = db_session.create_session()
         user_name = current_user.name
-        servers = dict() #ansver.server
+        servers = dict()  # ansver.server
         for ansver in db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id).all():
             server_name = db_sess.query(Servers).filter(Servers.id == ansver.server).first().name
             server_coins = ansver.coins + ansver.coins_cange
