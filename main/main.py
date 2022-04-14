@@ -36,14 +36,46 @@ def index():  # опа а где sql?
         user_name = current_user.name
         servers = dict()  # ansver.server
         for ansver in db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id).all():
-            server_name = db_sess.query(Servers).filter(Servers.id == ansver.server).first().name
+            server = db_sess.query(Servers).filter(Servers.id == ansver.server).first()
+            server_name = server.name
+            server_id = server.id
             server_coins = ansver.coins + ansver.coins_cange
-            servers[server_name] = server_coins
+            is_admin = ansver.is_admin
+            servers[server_name] = (
+                server_coins,
+                is_admin,
+                server_id,
+            )
         param['is_login'] = current_user.is_authenticated
         param['username'] = user_name
         param['servers'] = servers
+        param['is_admin'] = None
         param['status'] = None
     return render_template("index.html", **param)
+
+
+@app.route('/server_menejment/<int:id>', methods=['GET', 'POST'])
+def server_menejment(id):
+    param = {}
+    if current_user.is_authenticated:
+        db_sess = db_session.create_session()
+        if db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id,
+                                                UsersToServers.server == id).first().is_admin:
+            users = []
+            tasks = {}
+            for i in db_sess.query(UsersDefault).filter(UsersToServers.server == id).all():
+                users.append(f'{i.name} ({i.tag.split("#")[1]})')
+            for i in db_sess.query(Tasks).filter(TaskToServers.server == id).all():
+                tasks['name'] = i.name
+                tasks['task'] = i.task
+                tasks['ansver'] = i.ansver
+                tasks['coins'] = i.coins
+                tasks['created_date'] = i.created_date
+            param['users'] = users
+            param['tasks'] = tasks
+            return render_template("server_menejment.html", **param)
+        return render_template('access_denied.html')
+    return render_template("index.html")
 
 
 @app.route('/register', methods=['GET', 'POST'])

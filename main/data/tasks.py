@@ -14,6 +14,3 @@ class Tasks(SqlAlchemyBase, UserMixin, SerializerMixin):
     ansver = sa.Column(sa.String, nullable=True)
     coins = sa.Column(sa.Float, default=0)  # надо изменить этот сток пожже
     created_date = sa.Column(sa.DateTime, default=datetime.datetime.now())
-
-    def __repr__(self):
-        return f'<User name="{self.name}" id={self.id}>'

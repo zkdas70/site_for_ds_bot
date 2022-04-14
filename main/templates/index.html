@@ -10,7 +10,10 @@
             {{ coins }}<br>
             {% for item in servers %}
                 <h2>{{item}}</h2>
-                <div>{{servers[item]}}</div>
+                {% if servers[item][1] %}
+                    <a class="btn btn-primary " href="/server_menejment/{{servers[item][2]}}">Управление сервером</a>
+                {% endif %}
+                <div>{{servers[item][0]}}</div>
             {% endfor %}
         </div>
  {% else %}
