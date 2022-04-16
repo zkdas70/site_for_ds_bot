@@ -75,7 +75,7 @@ def server_menejment(id):
             param['tasks'] = tasks
             return render_template("server_menejment.html", **param)
         return render_template('access_denied.html')
-    return render_template("index.html")
+    return redirect("/")
 
 
 @app.route('/register', methods=['GET', 'POST'])
