@@ -8,6 +8,6 @@ from sqlalchemy_serializer import SerializerMixin
 
 class TaskToServers(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'task_to_servers'
-    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    autoincrement = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     task = sa.Column(sa.Integer, sa.ForeignKey('tasks.id'))
     server = sa.Column(sa.Integer, sa.ForeignKey('servers.id'))
