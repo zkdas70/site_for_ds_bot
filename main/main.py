@@ -124,15 +124,17 @@ def server_menejment(id):
                                                 UsersToServers.server == id).first().is_admin:
             users = []
             tasks = []
-            for i in db_sess.query(UsersDefault).filter(UsersToServers.server == id).all():
-                users.append(f'{i.name} ({i.tag.split("#")[1]})')
-            for i in db_sess.query(Tasks).filter(TaskToServers.server == id).all():
-                task = ''
-                task += str(i.name)
-                task += str(i.task)
-                task += str(i.answer)
-                task += str(i.coins)
-                task += str(i.created_date)
+            for user_id in db_sess.query(UsersToServers).filter(UsersToServers.server == id).all():
+                users.append(f'{db_sess.query(UsersDefault).filter(UsersDefault.id == user_id.users).first().name}')
+            for tasks_to_server in db_sess.query(TaskToServers).filter(TaskToServers.server == id).all():
+                task = dict()
+                task['id'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().id
+                task['name'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().name
+                task['task'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().task
+                task['answer'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().answer
+                task['coins'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().coins
+                task['created_date'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.
+                                                                   task).first().created_date
                 tasks.append(task)
             param['users'] = users
             param['tasks'] = tasks
