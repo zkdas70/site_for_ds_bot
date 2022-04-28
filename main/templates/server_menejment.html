@@ -10,7 +10,11 @@
             {% endfor %}
 <h1>задания сервера</h1>
 {% for item in tasks %}
-                <div>{{item}}</div>
+                <div>{{item}}
+                <a href="/edit_tasks/{{item['id']}}/{{server_id}}" class="btn btn-secondary">изменить задание</a>
+                </div>
+                <br>
             {% endfor %}
+    <a href="/add_tasks/{{server_id}}" class="btn btn-secondary">Добавить задание</a>
 </div>
 {% endblock %}

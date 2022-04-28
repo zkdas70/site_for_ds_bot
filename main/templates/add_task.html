@@ -6,7 +6,7 @@
     {{ form.hidden_tag() }}
     <p>
         {{ form.name.label }}<br>
-        {{ form.name(class="form-control") }}<br>
+        {{ form.name(class="form-control", value=value_name)}}<br>
         {% for error in form.name.errors %}
             <p class="alert alert-danger" role="alert">
                 {{ error }}
@@ -15,7 +15,7 @@
     </p>
     <p>
         {{ form.task.label }}<br>
-        {{ form.task(class="form-control") }}<br>
+        <textarea name="task" class="form-control">{{ value_task }}</textarea><br>
         {% for error in form.task.errors %}
             <p content="alert alert-danger" role="alert">
                 {{ error }}
@@ -24,7 +24,7 @@
     </p>
     <p>
         {{ form.answer.label }}<br>
-        {{ form.answer(class="form-control") }}<br>
+        <textarea name="answer" class="form-control">{{ value_answer }}</textarea><br>
         {% for error in form.answer.errors %}
             <p content="alert alert-danger" role="alert">
                 {{ error }}
@@ -33,7 +33,7 @@
     </p>
     <p>
         {{ form.coins.label }}<br>
-        {{ form.coins(class="form-control") }}<br>
+        {{ form.coins(class="form-control", value=value_coins) }}<br>
         {% for error in form.coins.errors %}
             <p content="alert alert-danger" role="alert">
                 {{ error }}

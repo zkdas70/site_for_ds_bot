@@ -138,6 +138,7 @@ def server_menejment(id):
                 tasks.append(task)
             param['users'] = users
             param['tasks'] = tasks
+            param['server_id'] = id
             return render_template("server_menejment.html", **param)
         return render_template('access_denied.html')
     return redirect("/")
@@ -145,7 +146,6 @@ def server_menejment(id):
 
 @app.route('/add_tasks/', methods=['GET', 'POST'])
 @app.route('/add_tasks/<int:server_id>', methods=['GET', 'POST'])
-@login_required
 def add_tasks(server_id=None):
     if current_user.is_authenticated:
         form = TaskForm()
@@ -168,11 +168,48 @@ def add_tasks(server_id=None):
                     task_to_servers.task = tasks.id
                     db_sess.add(task_to_servers)
                     db_sess.commit()
-                    return redirect('/')
+                    return redirect(f'/server_menejment/{server_id}')
                 return render_template('access_denied.html')
             return redirect('/')
         return render_template('add_task.html', title='Добавление задания', form=form)
     return redirect('/login')
+
+
+@app.route('/edit_tasks/<int:task_id>', methods=['GET', 'POST'])
+@app.route('/edit_tasks/<int:task_id>/<int:server_id>', methods=['GET', 'POST'])
+def edit_news(task_id, server_id=None):
+    if current_user.is_authenticated:
+        db_sess = db_session.create_session()
+        form = TaskForm()
+        if db_sess.query(Tasks).filter(Tasks.id == task_id).first():
+            param = dict()
+            param['value_name'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().name
+            param['value_task'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().task
+            param['value_answer'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().answer
+            param['value_coins'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().coins
+            if form.validate_on_submit():
+                tasks = db_sess.query(Tasks).filter(Tasks.id == task_id).first()
+                tasks.name = form.name.data
+                tasks.task = form.task.data
+                tasks.answer = form.answer.data
+                tasks.coins = form.coins.data
+                tasks.is_private = form.is_private.data
+                tasks.creator = current_user.id
+                db_sess.add(tasks)
+                db_sess.commit()
+                if server_id:
+                    if db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id,
+                                                            UsersToServers.server == server_id).first().is_admin:
+                        task_to_servers = db_sess.query(TaskToServers).filter(TaskToServers.task == task_id).first()
+                        task_to_servers.server = server_id
+                        task_to_servers.task = tasks.id
+                        db_sess.add(task_to_servers)
+                        db_sess.commit()
+                        return redirect(f'/server_menejment/{server_id}')
+                    return render_template('access_denied.html')
+                return redirect('/')
+            return render_template('add_task.html', **param, title='изменить задания', form=form)
+        return redirect('/login')
 
 
 @app.errorhandler(404)
