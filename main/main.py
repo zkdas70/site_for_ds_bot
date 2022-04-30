@@ -183,18 +183,33 @@ def edit_tasks(task_id, server_id=None):
         form = TaskForm()
         if db_sess.query(Tasks).filter(Tasks.id == task_id).first():
             param = dict()
+            param['server_id'] = server_id
             param['value_name'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().name
             param['value_task'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().task
             param['value_answer'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().answer
             param['value_coins'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().coins
+            param['value_is_private'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().is_private
             if form.validate_on_submit():
                 is_creator_menejment = db_sess.query(Tasks).filter(Tasks.creator == current_user.id,
-                                                                   Tasks.id == task_id).first()
+                                                                   Tasks.id == task_id).all()
+                if len(is_creator_menejment) == 1:
+                    is_creator_menejment = True
+                else:
+                    is_creator_menejment = False
                 is_admin_menejment = db_sess.query(Tasks).filter(Tasks.is_private == True,
-                                                                 Tasks.id == task_id) and db_sess.query(
-                    TaskToServers).filter(TaskToServers.server == server_id).first()
+                                                                 Tasks.id == task_id).all()
+                is_admin_menejment += db_sess.query(TaskToServers).filter(TaskToServers.server == server_id,
+                                                                          TaskToServers.task == task_id).all()
+                if len(is_admin_menejment) == 2:
+                    is_admin_menejment = True
+                else:
+                    is_admin_menejment = False
                 is_admin = db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id,
-                                                                UsersToServers.server == server_id).first().is_admin
+                                                                UsersToServers.server == server_id).all()
+                if len(is_admin) == 1:
+                    is_admin = True
+                else:
+                    is_admin = False
                 if (is_admin_menejment and is_admin) or is_creator_menejment:
                     tasks = db_sess.query(Tasks).filter(Tasks.id == task_id).first()
                     tasks.name = form.name.data
@@ -202,12 +217,12 @@ def edit_tasks(task_id, server_id=None):
                     tasks.answer = form.answer.data
                     tasks.coins = form.coins.data
                     tasks.is_private = form.is_private.data
-                    tasks.creator = current_user.id
                     db_sess.add(tasks)
                     db_sess.commit()
                     if is_admin_menejment:
                         return redirect(f'/server_menejment/{server_id}')
-                    return redirect('/')
+                    param['task_cannot_be_changed'] = True
+                    return render_template('add_task.html', **param, title='изменить задания', form=form)
                 return render_template('access_denied.html')
             return render_template('add_task.html', **param, title='изменить задания', form=form)
         return redirect('/')

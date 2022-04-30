@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Добавление новости</h1>
+{% if task_cannot_be_changed %}
+    <div class="alert alert-danger" role="alert">Изменить задание не возможно.<br>Изменить Публичное задание может только автор</div>
+    {% endif %}
+<h1>Добавление задания</h1>
 <form action="" method="post">
     {{ form.hidden_tag() }}
     <p>
@@ -40,8 +43,19 @@
             </p>
         {% endfor %}
     </p>
+    {% if value_is_private %}
+    <style>
+    input:checked
+    </style>
+    {% endif %}
     <p>{{ form.is_private() }} {{ form.is_private.label }}</p>
-    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+    <p>{{ form.submit(type="submit", class="btn btn-primary") }}
+        {% if server_id != None %}
+        <a class="btn btn-secondary" href="/server_menejment/{{server_id}}" role="button">управления сервером</a>
+        {% else %}
+        <a class="btn btn-secondary" href="/" role="button">главная страница</a>
+        {% endif %}
+    </p>
     {{message}}
 </form>
 {% endblock %}

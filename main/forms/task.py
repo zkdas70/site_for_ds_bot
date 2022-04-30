@@ -9,5 +9,5 @@ class TaskForm(FlaskForm):
     task = TextAreaField("Задание")
     answer = TextAreaField("Ответ")
     coins = FloatField('Баллы за ответ (число)')
-    is_private = BooleanField("Личное",  default="checked")
+    is_private = BooleanField("Личное")
     submit = SubmitField('Применить')
