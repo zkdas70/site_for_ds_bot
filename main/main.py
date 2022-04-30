@@ -177,7 +177,7 @@ def add_tasks(server_id=None):
 
 @app.route('/edit_tasks/<int:task_id>', methods=['GET', 'POST'])
 @app.route('/edit_tasks/<int:task_id>/<int:server_id>', methods=['GET', 'POST'])
-def edit_news(task_id, server_id=None):
+def edit_tasks(task_id, server_id=None):
     if current_user.is_authenticated:
         db_sess = db_session.create_session()
         form = TaskForm()
@@ -188,28 +188,36 @@ def edit_news(task_id, server_id=None):
             param['value_answer'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().answer
             param['value_coins'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().coins
             if form.validate_on_submit():
-                tasks = db_sess.query(Tasks).filter(Tasks.id == task_id).first()
-                tasks.name = form.name.data
-                tasks.task = form.task.data
-                tasks.answer = form.answer.data
-                tasks.coins = form.coins.data
-                tasks.is_private = form.is_private.data
-                tasks.creator = current_user.id
-                db_sess.add(tasks)
-                db_sess.commit()
-                if server_id:
-                    if db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id,
-                                                            UsersToServers.server == server_id).first().is_admin:
-                        task_to_servers = db_sess.query(TaskToServers).filter(TaskToServers.task == task_id).first()
-                        task_to_servers.server = server_id
-                        task_to_servers.task = tasks.id
-                        db_sess.add(task_to_servers)
-                        db_sess.commit()
+                is_creator_menejment = db_sess.query(Tasks).filter(Tasks.creator == current_user.id,
+                                                                   Tasks.id == task_id).first()
+                is_admin_menejment = db_sess.query(Tasks).filter(Tasks.is_private == True,
+                                                                 Tasks.id == task_id) and db_sess.query(
+                    TaskToServers).filter(TaskToServers.server == server_id).first()
+                is_admin = db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id,
+                                                                UsersToServers.server == server_id).first().is_admin
+                if (is_admin_menejment and is_admin) or is_creator_menejment:
+                    tasks = db_sess.query(Tasks).filter(Tasks.id == task_id).first()
+                    tasks.name = form.name.data
+                    tasks.task = form.task.data
+                    tasks.answer = form.answer.data
+                    tasks.coins = form.coins.data
+                    tasks.is_private = form.is_private.data
+                    tasks.creator = current_user.id
+                    db_sess.add(tasks)
+                    db_sess.commit()
+                    if is_admin_menejment:
                         return redirect(f'/server_menejment/{server_id}')
-                    return render_template('access_denied.html')
-                return redirect('/')
+                    return redirect('/')
+                return render_template('access_denied.html')
             return render_template('add_task.html', **param, title='изменить задания', form=form)
-        return redirect('/login')
+        return redirect('/')
+    return redirect('/login')
+
+
+@app.route('/delete_tasks/<int:task_id>', methods=['GET', 'POST'])
+def delete_tasks(task_id, server_id=None):
+    if current_user.is_authenticated:
+        db_sess = db_session.create_session()
 
 
 @app.errorhandler(404)
