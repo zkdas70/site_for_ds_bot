@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<a  class="btn btn-info" href="/add_tasks">добавить задание</a>
+<h1>Публичные задания</h1>
+{% for item in tasks %}
+<p>{{item}}
+
+    <div class="dropdown">
+            <a  class="btn btn-info" href="/add_task_to_server/{{item['id']}}/{{server['server_id']}}">добавить на сервер</a>
+            <a  class="btn btn-info" href="/add_task_to_server/{{item['id']}}/{{server['server_id']}}">добавить на сервер</a>
+            {% for server in servers %}
+                <a  class="btn btn-info" href="/add_task_to_server/{{item['id']}}/{{server['server_id']}}">добавить на сервер</a>
+            {% endfor %}
+    </div>
+</p>
+{% endfor %}
+{% endblock %}

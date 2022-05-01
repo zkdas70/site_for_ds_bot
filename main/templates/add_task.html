@@ -48,10 +48,10 @@
         {{ form.is_private(checked=value_is_private) }}
     </p>
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}
-        {% if server_id != None %}
+        {% if server_id%}
         <a class="btn btn-secondary" href="/server_menejment/{{server_id}}" role="button">управления сервером</a>
         {% else %}
-        <a class="btn btn-secondary" href="/" role="button">главная страница</a>
+        <a class="btn btn-secondary" href="/public_tasks" role="button">Публичные задания</a>
         {% endif %}
     </p>
     {{message}}

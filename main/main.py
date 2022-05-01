@@ -168,7 +168,7 @@ def server_menejment(id):
     return redirect("/")
 
 
-@app.route('/add_tasks/', methods=['GET', 'POST'])
+@app.route('/add_tasks', methods=['GET', 'POST'])
 @app.route('/add_tasks/<int:server_id>', methods=['GET', 'POST'])
 def add_tasks(server_id=None):
     if current_user.is_authenticated:
@@ -183,10 +183,10 @@ def add_tasks(server_id=None):
             tasks = Tasks()
             tasks.name = form.name.data
             tasks.task = form.task.data
-            tasks.answer = form.answer.data
             tasks.coins = form.coins.data
-            tasks.is_private = form.is_private.data
+            tasks.answer = form.answer.data
             tasks.creator = current_user.id
+            tasks.is_private = form.is_private.data
             db_sess.add(tasks)
             db_sess.commit()
             if server_id:
@@ -247,7 +247,10 @@ def edit_tasks(task_id, server_id=None):
                     tasks.task = form.task.data
                     tasks.answer = form.answer.data
                     tasks.coins = form.coins.data
-                    tasks.is_private = form.is_private.data
+                    if not server_id:
+                        tasks.is_private = False
+                    else:
+                        tasks.is_private = form.is_private.data
                     db_sess.add(tasks)
                     db_sess.commit()
                     if server_id:
@@ -291,6 +294,49 @@ def delete_tasks_from_server(task_id, server_id):
         db_sess.commit()
         return redirect(f'/server_menejment/{server_id}')
     abort(404)
+
+
+@app.route('/public_tasks')
+def public_tasks():
+    if current_user.is_authenticated:
+        db_sess = db_session.create_session()
+        param = dict()
+        tasks = []
+        for task_answer in db_sess.query(Tasks).filter(Tasks.is_private == False).all():
+            task = dict()
+            task['id'] = task_answer.id
+            task['name'] = task_answer.name
+            task['task'] = task_answer.task
+            task['coins'] = task_answer.coins
+            task['answer'] = task_answer.answer
+            task['creator'] = task_answer.creator
+            task['is_private'] = task_answer.is_private
+            task['created_date'] = task_answer.created_date
+            tasks.append(task)
+        param['tasks'] = tasks
+        servers = []
+        for server_answer in db_sess.query(UsersToServers).filter(UsersToServers.is_admin == True).all():
+            server = dict()
+            server['server_name'] = db_sess.query(Servers).filter(Servers.id == server_answer.server).first().name
+            server['server_id'] = server_answer.server
+            servers.append(server)
+        param['servers'] = servers
+        return render_template("public_tasks.html", **param)
+    return render_template("index.html")
+
+
+@app.route('/add_task_to_server/<int:task_id>/<int:server_id>')
+def add_task_to_server(task_id, server_id):
+    db_sess = db_session.create_session()
+    if db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id,
+                                            UsersToServers.server == server_id).first().is_admin:
+        task_to_servers = TaskToServers()
+        task_to_servers.server = server_id
+        task_to_servers.task = task_id
+        db_sess.add(task_to_servers)
+        db_sess.commit()
+        return redirect(f'/server_menejment/{server_id}')
+    return render_template('access_denied.html')
 
 
 @app.route('/refresh')
