@@ -11,7 +11,10 @@
 <h1>задания сервера</h1>
 {% for item in tasks %}
                 <div>{{item}}
-                <a href="/edit_tasks/{{item['id']}}/{{server_id}}" class="btn btn-secondary">изменить задание</a>
+                    <a href="/edit_tasks/{{item['id']}}/{{server_id}}" class="btn btn-secondary">изменить задание</a>
+                    {% if current_user.id == item['creator'] or item['is_private'] %}
+                        <a href="/delete_tasks/{{item['id']}}/{{server_id}}" class="btn btn-info">удалить задание</a>
+                    {% endif %}
                 </div>
                 <br>
             {% endfor %}

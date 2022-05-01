@@ -1,3 +1,4 @@
+from random import choice
 from flask import Flask, render_template, redirect, request, make_response, \
     session, abort, jsonify
 from data import db_session
@@ -13,8 +14,21 @@ from flask_login import LoginManager, login_user, current_user, logout_user, \
 import datetime
 import json
 
+
+def generate_secret_key():
+    password_letters_0 = list('abcdefghijklmnpqorstuvwxyz')
+    password_letters_1 = list('0123456789')
+    password_letters_2 = list('ABCDEFGHIJKLMNPQORSTUVWXYZ')
+    secret_key = set()
+    for i in range(10):
+        secret_key.add(choice(password_letters_0))
+        secret_key.add(choice(password_letters_1))
+        secret_key.add(choice(password_letters_2))
+    return str(secret_key)
+
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['SECRET_KEY'] = generate_secret_key()
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
     days=365
 )
@@ -128,17 +142,21 @@ def server_menejment(id):
                 users.append(f'{db_sess.query(UsersDefault).filter(UsersDefault.id == user_id.users).first().name}')
             for tasks_to_server in db_sess.query(TaskToServers).filter(TaskToServers.server == id).all():
                 task = dict()
-                task['id'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().id
-                task['name'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().name
-                task['task'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().task
-                task['answer'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().answer
-                task['coins'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first().coins
-                task['created_date'] = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.
-                                                                   task).first().created_date
-                tasks.append(task)
+                task_answer = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first()
+                if task_answer:
+                    task['id'] = task_answer.id
+                    task['name'] = task_answer.name
+                    task['task'] = task_answer.task
+                    task['coins'] = task_answer.coins
+                    task['answer'] = task_answer.answer
+                    task['creator'] = task_answer.creator
+                    task['is_private'] = task_answer.is_private
+                    task['created_date'] = task_answer.created_date
+                    tasks.append(task)
             param['users'] = users
             param['tasks'] = tasks
             param['server_id'] = id
+            param['current_user'] = current_user
             return render_template("server_menejment.html", **param)
         return render_template('access_denied.html')
     return redirect("/")
@@ -225,19 +243,33 @@ def edit_tasks(task_id, server_id=None):
                     return render_template('add_task.html', **param, title='изменить задания', form=form)
                 return render_template('access_denied.html')
             return render_template('add_task.html', **param, title='изменить задания', form=form)
-        return redirect('/')
-    return redirect('/login')
+        return redirect(f'/')
+    return redirect(f'/login')
 
 
-@app.route('/delete_tasks/<int:task_id>', methods=['GET', 'POST'])
+@app.route(f'/delete_tasks/<int:task_id>', methods=['GET', 'POST'])
+@app.route(f'/delete_tasks/<int:task_id>/<int:server_id>', methods=['GET', 'POST'])
+@login_required
 def delete_tasks(task_id, server_id=None):
-    if current_user.is_authenticated:
-        db_sess = db_session.create_session()
+    db_sess = db_session.create_session()
+    task = db_sess.query(Tasks).filter(Tasks.id == task_id, Tasks.creator == current_user.id).first()
+    if not task and db_sess.query(TaskToServers).filter(TaskToServers.server == server_id,
+                                                        TaskToServers.task == task_id).first():
+        task = db_sess.query(Tasks).filter(Tasks.id == task_id, Tasks.is_private == True).first()
+    if task:
+        db_sess.delete(task)
+        db_sess.commit()
+        if server_id:
+            return redirect(f'/server_menejment/{server_id}')
+        return redirect(f'/')
+    abort(404)
 
 
-@app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
+@app.route('/refresh')
+def refresh():
+    app.config['SECRET_KEY'] = generate_secret_key()
+    return 'refresh completed'
+
 
 
 def main():
