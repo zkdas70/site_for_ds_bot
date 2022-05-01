@@ -14,17 +14,23 @@ from flask_login import LoginManager, login_user, current_user, logout_user, \
 import datetime
 import json
 
+DEBAG = True
+
 
 def generate_secret_key():
-    password_letters_0 = list('abcdefghijklmnpqorstuvwxyz')
-    password_letters_1 = list('0123456789')
-    password_letters_2 = list('ABCDEFGHIJKLMNPQORSTUVWXYZ')
-    secret_key = set()
-    for i in range(10):
-        secret_key.add(choice(password_letters_0))
-        secret_key.add(choice(password_letters_1))
-        secret_key.add(choice(password_letters_2))
-    return str(secret_key)
+    if DEBAG:
+        secret_key = '3ZnqU04e9vhaF8fyBD5W1QbJ'
+    else:
+        password_letters_0 = list('abcdefghijklmnpqorstuvwxyz')
+        password_letters_1 = list('0123456789')
+        password_letters_2 = list('ABCDEFGHIJKLMNPQORSTUVWXYZ')
+        secret_key = set()
+        for i in range(10):
+            secret_key.add(choice(password_letters_0))
+            secret_key.add(choice(password_letters_1))
+            secret_key.add(choice(password_letters_2))
+        secret_key = ''.join(secret_key)
+    return secret_key
 
 
 app = Flask(__name__)
@@ -167,6 +173,11 @@ def server_menejment(id):
 def add_tasks(server_id=None):
     if current_user.is_authenticated:
         form = TaskForm()
+        param = dict()
+        if server_id:
+            param['value_is_private'] = True
+        else:
+            param['value_is_private'] = False
         if form.validate_on_submit():
             db_sess = db_session.create_session()
             tasks = Tasks()
@@ -189,7 +200,7 @@ def add_tasks(server_id=None):
                     return redirect(f'/server_menejment/{server_id}')
                 return render_template('access_denied.html')
             return redirect('/')
-        return render_template('add_task.html', title='Добавление задания', form=form)
+        return render_template('add_task.html', **param, title='Добавление задания', form=form)
     return redirect('/login')
 
 
@@ -201,12 +212,14 @@ def edit_tasks(task_id, server_id=None):
         form = TaskForm()
         if db_sess.query(Tasks).filter(Tasks.id == task_id).first():
             param = dict()
-            param['server_id'] = server_id
-            param['value_name'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().name
-            param['value_task'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().task
-            param['value_answer'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().answer
-            param['value_coins'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().coins
-            param['value_is_private'] = db_sess.query(Tasks).filter(Tasks.id == task_id).first().is_private
+            tasks_answer = db_sess.query(Tasks).filter(Tasks.id == task_id).first()
+            if tasks_answer:
+                param['server_id'] = server_id
+                param['value_name'] = tasks_answer.name
+                param['value_task'] = tasks_answer.task
+                param['value_coins'] = tasks_answer.coins
+                param['value_answer'] = tasks_answer.answer
+                param['value_is_private'] = tasks_answer.is_private
             if form.validate_on_submit():
                 is_creator_menejment = db_sess.query(Tasks).filter(Tasks.creator == current_user.id,
                                                                    Tasks.id == task_id).all()
@@ -237,31 +250,46 @@ def edit_tasks(task_id, server_id=None):
                     tasks.is_private = form.is_private.data
                     db_sess.add(tasks)
                     db_sess.commit()
-                    if is_admin_menejment:
+                    if server_id:
                         return redirect(f'/server_menejment/{server_id}')
-                    param['task_cannot_be_changed'] = True
-                    return render_template('add_task.html', **param, title='изменить задания', form=form)
-                return render_template('access_denied.html')
+                    return redirect(f'/')
+                param['task_cannot_be_changed'] = True
             return render_template('add_task.html', **param, title='изменить задания', form=form)
-        return redirect(f'/')
+        return render_template('access_denied.html')
     return redirect(f'/login')
 
 
 @app.route(f'/delete_tasks/<int:task_id>', methods=['GET', 'POST'])
 @app.route(f'/delete_tasks/<int:task_id>/<int:server_id>', methods=['GET', 'POST'])
 @login_required
-def delete_tasks(task_id, server_id=None):
+def delete_tasks(task_id, server_id=None, is_deleting_only_from_server=None):
     db_sess = db_session.create_session()
     task = db_sess.query(Tasks).filter(Tasks.id == task_id, Tasks.creator == current_user.id).first()
     if not task and db_sess.query(TaskToServers).filter(TaskToServers.server == server_id,
                                                         TaskToServers.task == task_id).first():
         task = db_sess.query(Tasks).filter(Tasks.id == task_id, Tasks.is_private == True).first()
     if task:
+        if not is_deleting_only_from_server:
+            servers_to_users = db_sess.query(TaskToServers).filter(TaskToServers.task == task_id).all()
+            for server_to_user in servers_to_users:
+                db_sess.delete(server_to_user)
         db_sess.delete(task)
         db_sess.commit()
         if server_id:
             return redirect(f'/server_menejment/{server_id}')
         return redirect(f'/')
+    abort(404)
+
+
+@app.route(f'/delete_tasks_from_server/<int:task_id>/<int:server_id>', methods=['GET', 'POST'])
+@login_required
+def delete_tasks_from_server(task_id, server_id):
+    db_sess = db_session.create_session()
+    task = db_sess.query(TaskToServers).filter(TaskToServers.task == task_id, TaskToServers.server == server_id).first()
+    if task:
+        db_sess.delete(task)
+        db_sess.commit()
+        return redirect(f'/server_menejment/{server_id}')
     abort(404)
 
 
@@ -271,10 +299,9 @@ def refresh():
     return 'refresh completed'
 
 
-
 def main():
-    db_session.global_init("db/blogs.db")
-    app.run()
+    db_session.global_init("db/blogs.db", )
+    app.run(debug=DEBAG)
 
 
 if __name__ == '__main__':

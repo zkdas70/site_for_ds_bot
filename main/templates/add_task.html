@@ -43,12 +43,10 @@
             </p>
         {% endfor %}
     </p>
-    {% if value_is_private %}
-    <style>
-    input:checked
-    </style>
-    {% endif %}
-    <p>{{ form.is_private() }} {{ form.is_private.label }}</p>
+    <p>
+        {{ form.is_private.label }}
+        {{ form.is_private(checked=value_is_private) }}
+    </p>
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}
         {% if server_id != None %}
         <a class="btn btn-secondary" href="/server_menejment/{{server_id}}" role="button">управления сервером</a>
