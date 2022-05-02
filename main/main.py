@@ -301,6 +301,7 @@ def public_tasks():
     if current_user.is_authenticated:
         db_sess = db_session.create_session()
         param = dict()
+        servers = []
         tasks = []
         for task_answer in db_sess.query(Tasks).filter(Tasks.is_private == False).all():
             task = dict()
@@ -314,13 +315,13 @@ def public_tasks():
             task['created_date'] = task_answer.created_date
             tasks.append(task)
         param['tasks'] = tasks
-        servers = []
         for server_answer in db_sess.query(UsersToServers).filter(UsersToServers.is_admin == True).all():
             server = dict()
             server['server_name'] = db_sess.query(Servers).filter(Servers.id == server_answer.server).first().name
             server['server_id'] = server_answer.server
             servers.append(server)
         param['servers'] = servers
+        param['current_user'] = current_user
         return render_template("public_tasks.html", **param)
     return render_template("index.html")
 
