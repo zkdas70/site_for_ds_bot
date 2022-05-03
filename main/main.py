@@ -59,7 +59,7 @@ def index():  # опа а где sql?
             server = db_sess.query(Servers).filter(Servers.id == ansver.server).first()
             server_name = server.name
             server_id = server.id
-            server_coins = ansver.coins + ansver.coins_cange
+            server_coins = ansver.coins
             is_admin = ansver.is_admin
             servers[server_name] = (
                 server_coins,
