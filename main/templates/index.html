@@ -1,34 +1,41 @@
 {% extends "base.html" %}
 
 {% block content %}
- {% if is_login %}
-        <div>
-            {% if status != None %}
-                {{ status }}
-            {% endif %}
-            {{ username }}<br>
-            {{ coins }}<br>
-            {% for item in servers %}
-                <h2>{{item}}</h2>
-                    <div class="dropdown{{servers[item]['server_id']}}">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="about-us" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">купить роль</button>
-                        <div class="dropdown-menu" aria-labelledby="about-us">
-                            {% for role in servers[item]['servers_roles'] %}
-                                <a class="dropdown-item" href="#">{{role}} - {{servers[item]['servers_roles'][role]}}</a>
-                            {% endfor %}
-                        </div>
-                {% if servers[item]['is_admin'] %}
-                    <a class="btn btn-primary " href="/server_menejment/{{servers[item]['server_id']}}">Управление сервером</a>
+{% if is_login %}
+<div>
+    {% if status != None %}
+        {{ status }}
+    {% endif %}
+    {{ username }}<br>
+    {{ coins }}<br>
+    {% for item in servers %}
+        <h2>{{item}}</h2>
+            <div class="dropdown{{servers[item]['server_id']}}">
+                {% if servers[item]['server_id'] == buy_role_error %}
+                    <div class="alert alert-danger" role="alert">Уведомление об опасности</div>
                 {% endif %}
-                        </div>
-                <div>{{servers[item]['server_coins']}}</div>
-            {% endfor %}
-        </div>
- {% else %}
-       <div>
-           <a class="btn btn-primary " href="/register">Зарегистрироваться</a>
-           <br>
-           <a class="btn btn-success" href="/login">Войти</a>
-       </div>
- {% endif %}
+                <button class="btn btn-primary dropdown-toggle" type="button" id="about-us" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">купить роль</button>
+                <div class="dropdown-menu" aria-labelledby="about-us">
+                    {% for role in servers[item]['servers_roles'] %}
+                        {% if not role in servers[item]['user_roles'] %}
+                            <a class="dropdown-item" href="/buy_role/{{servers[item]['server_id']}}/{{role}}">{{role}} - {{servers[item]['servers_roles'][role]}} монеты</a>
+                        {% else %}
+                            <a class="dropdown-item disabled" href="/">{{role}} - уже есть</a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+        {% if servers[item]['is_admin'] %}
+            <a class="btn btn-primary " href="/server_menejment/{{servers[item]['server_id']}}">Управление сервером</a>
+        {% endif %}
+                </div>
+        <div>{{servers[item]['server_coins']}}</div>
+    {% endfor %}
+</div>
+{% else %}
+<div>
+   <a class="btn btn-primary " href="/register">Зарегистрироваться</a>
+   <br><br><br>
+   <a class="btn btn-success" href="/login">Войти</a>
+</div>
+{% endif %}
 {% endblock %}
