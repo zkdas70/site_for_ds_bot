@@ -10,10 +10,18 @@
             {{ coins }}<br>
             {% for item in servers %}
                 <h2>{{item}}</h2>
-                {% if servers[item][1] %}
-                    <a class="btn btn-primary " href="/server_menejment/{{servers[item][2]}}">Управление сервером</a>
+                    <div class="dropdown{{servers[item]['server_id']}}">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="about-us" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">купить роль</button>
+                        <div class="dropdown-menu" aria-labelledby="about-us">
+                            {% for role in servers[item]['servers_roles'] %}
+                                <a class="dropdown-item" href="#">{{role}} - {{servers[item]['servers_roles'][role]}}</a>
+                            {% endfor %}
+                        </div>
+                {% if servers[item]['is_admin'] %}
+                    <a class="btn btn-primary " href="/server_menejment/{{servers[item]['server_id']}}">Управление сервером</a>
                 {% endif %}
-                <div>{{servers[item][0]}}</div>
+                        </div>
+                <div>{{servers[item]['server_coins']}}</div>
             {% endfor %}
         </div>
  {% else %}

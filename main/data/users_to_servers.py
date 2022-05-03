@@ -11,4 +11,5 @@ class UsersToServers(SqlAlchemyBase, UserMixin, SerializerMixin):
     server = sa.Column(sa.Integer, sa.ForeignKey('servers.id'), index=True)
     users = sa.Column(sa.Integer, sa.ForeignKey('users_default.id'), index=True)
     coins = sa.Column(sa.Float, nullable=False, default=0)
+    roles = sa.Column(sa.JSON, nullable=False, default=list())
     is_admin = sa.Column(sa.Boolean, default=False, nullable=False)

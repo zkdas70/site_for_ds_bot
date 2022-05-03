@@ -61,11 +61,13 @@ def index():  # опа а где sql?
             server_id = server.id
             server_coins = ansver.coins
             is_admin = ansver.is_admin
-            servers[server_name] = (
-                server_coins,
-                is_admin,
-                server_id,
-            )
+            servers_roles = server.roles_price
+            servers[server_name] = {
+                'server_coins': server_coins,
+                'is_admin': is_admin,
+                'server_id': server_id,
+                'servers_roles': servers_roles,
+            }
         param['is_login'] = current_user.is_authenticated
         param['username'] = user_name
         param['servers'] = servers

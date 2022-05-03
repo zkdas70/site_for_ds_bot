@@ -9,4 +9,5 @@ from sqlalchemy_serializer import SerializerMixin
 class Servers(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'servers'
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    name = sa.Column(sa.String, nullable=True)
+    name = sa.Column(sa.String, nullable=False)
+    roles_price = sa.Column(sa.JSON, nullable=False, default=dict())  # название : цена
