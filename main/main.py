@@ -167,6 +167,7 @@ def server_menejment(id):
             param['tasks'] = tasks
             param['server_id'] = id
             param['current_user'] = current_user
+            param['servers_roles'] = db_sess.query(Servers).filter(Servers.id == id).first().roles_price
             return render_template("server_menejment.html", **param)
         return render_template('access_denied.html')
     return redirect("/")
@@ -355,11 +356,69 @@ def buy_role(server_id, role):
         user = db_sess.query(UsersToServers).filter(UsersToServers.server == server_id,
                                                     UsersToServers.users == user_id).first()
         if user and server.roles_price[role] <= user.coins:
-            user.coins -= server.roles_price[role]
-            user.roles = set(*user.roles, role)
+            user_coins = user.coins - server.roles_price[role]
+            user_roles = set(user.roles)
+            user_roles.add(role)
+            user_commit = db_sess.query(UsersToServers).filter(UsersToServers.server == server_id,
+                                                               UsersToServers.users == user_id).first()
+            user_commit.roles = user_roles
+            user_commit.coins = user_coins
             db_sess.commit()
         return redirect('/')
     abort(404)
+
+
+@app.route('/add_role/<int:server_id>/<role>/<int:prise>')
+@login_required
+def add_role(server_id, role, prise):
+    db_sess = db_session.create_session()
+    is_admin = db_sess.query(UsersToServers).filter(UsersToServers.is_admin,
+                                                    UsersToServers.users == current_user.id,
+                                                    UsersToServers.server == server_id).first().is_admin
+    if is_admin:
+        roles_price = db_sess.query(Servers).filter(Servers.id == server_id).first().roles_price
+        if role not in roles_price:
+            roles_price[role] = prise
+            db_sess.query(Servers).filter(Servers.id == server_id).first().roles_price = roles_price
+            db_sess.commit()
+            return redirect('/')
+        return redirect('/')
+    return render_template('access_denied.html')
+
+
+@app.route('/del_role/<int:server_id>/<role>')
+@login_required
+def del_role(server_id, role):
+    db_sess = db_session.create_session()
+    is_admin = db_sess.query(UsersToServers).filter(UsersToServers.is_admin,
+                                                    UsersToServers.users == current_user.id,
+                                                    UsersToServers.server == server_id).first().is_admin
+    if is_admin:
+        roles_price = db_sess.query(Servers).filter(Servers.id == server_id).first().roles_price
+        if role in roles_price:
+            del roles_price[role]
+            return redirect('/')
+        abort(404)
+    return render_template('access_denied.html')
+
+
+@app.route('/dive_admin_role/<int:server_id>/<int:user_id>')
+@login_required
+def dive_admin_role(server_id, user_id):
+    db_sess = db_session.create_session()
+    is_admin = db_sess.query(UsersToServers).filter(UsersToServers.is_admin,
+                                                    UsersToServers.users == current_user.id,
+                                                    UsersToServers.server == server_id).first().is_admin
+    if is_admin:
+        db_sess.query(UsersToServers).filter(UsersToServers.users == user_id,
+                                             UsersToServers.server == server_id).first().is_admin = True
+        return redirect(f'/server_menejment/{server_id}')
+    return render_template('access_denied.html')
+
+
+# @app.errorhandler(1)
+# def attribute_error():
+#     return redirect('/')
 
 
 @app.route('/refresh')
@@ -370,7 +429,7 @@ def refresh():
 
 def main():
     db_session.global_init("db/blogs.db", )
-    app.run()
+    app.run(debug=DEBAG)
 
 
 if __name__ == '__main__':
