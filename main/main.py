@@ -61,12 +61,14 @@ def index():  # опа а где sql?
             server_id = server.id
             server_coins = ansver.coins
             is_admin = ansver.is_admin
+            user_roles = ansver.roles
             servers_roles = server.roles_price
             servers[server_name] = {
                 'server_coins': server_coins,
                 'is_admin': is_admin,
                 'server_id': server_id,
                 'servers_roles': servers_roles,
+                'user_roles': user_roles
             }
         param['is_login'] = current_user.is_authenticated
         param['username'] = user_name
@@ -329,6 +331,7 @@ def public_tasks():
 
 
 @app.route('/add_task_to_server/<int:task_id>/<int:server_id>')
+@login_required
 def add_task_to_server(task_id, server_id):
     db_sess = db_session.create_session()
     if db_sess.query(UsersToServers).filter(UsersToServers.users == current_user.id,
@@ -342,6 +345,23 @@ def add_task_to_server(task_id, server_id):
     return render_template('access_denied.html')
 
 
+@app.route('/buy_role/<int:server_id>/<role>')
+@login_required
+def buy_role(server_id, role):
+    user_id = current_user.id
+    db_sess = db_session.create_session()
+    server = db_sess.query(Servers).filter(Servers.id == server_id).first()
+    if role in server.roles_price:
+        user = db_sess.query(UsersToServers).filter(UsersToServers.server == server_id,
+                                                    UsersToServers.users == user_id).first()
+        if user and server.roles_price[role] <= user.coins:
+            user.coins -= server.roles_price[role]
+            user.roles = set(*user.roles, role)
+            db_sess.commit()
+        return redirect('/')
+    abort(404)
+
+
 @app.route('/refresh')
 def refresh():
     app.config['SECRET_KEY'] = generate_secret_key()
@@ -350,7 +370,7 @@ def refresh():
 
 def main():
     db_session.global_init("db/blogs.db", )
-    app.run(debug=DEBAG)
+    app.run()
 
 
 if __name__ == '__main__':
