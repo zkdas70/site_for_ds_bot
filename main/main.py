@@ -15,7 +15,7 @@ from flask_login import LoginManager, login_user, current_user, logout_user, \
 import datetime
 import json
 
-DEBAG = True
+DEBAG = False
 
 
 def generate_secret_key():

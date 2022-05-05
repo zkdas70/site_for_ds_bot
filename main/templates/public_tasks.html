@@ -4,16 +4,35 @@
 <a  class="btn btn-info" href="/add_tasks">добавить задание</a>
 <h1>Публичные задания</h1>
 {% for item in tasks %}
-<p>{{item}}
+<p>
     <div class="dropdown">
-            {% for server in servers %}
+     <div style="border: 1px solid #e9e8e8; border-radius: 3px; margin-bottom: 1rem; padding: 5px;">
+        <h1>{{item['name']}}</h1>
+        <div  class="col-sm-12">
+            <p style="padding-left: 10px;">{{item['task']}}</p>
+            <p style="padding-left: 40px;">ответ: {{item['answer']}}</p>
+            <p style="text-align: right;">цена: {{item['coins']}}</p>
+        </div>
+        <div>
+            <div class="row">
+                <div class="col-sm-8">
+        {% for server in servers %}
                 <a  class="btn btn-info" href="/add_task_to_server/{{item['id']}}/{{server['server_id']}}">добавить на сервер</a>
             {% endfor %}
             {% if current_user.id == item['creator'] %}
                 <a href="/edit_tasks/{{item['id']}}/{{servers['server_id']}}" class="btn btn-secondary">изменить задание</a>
                 <a href="/delete_tasks/{{item['id']}}/{{servers['server_id']}}" class="btn btn-danger">удалить задание</a>
             {% endif %}
-    </div>
+                </div>
+                <div class="col-sm-4">
+            <div style="padding-left: 40px; text-align: right;">создатель: {{item['creator']}} id: {{item['id']}}</div>
+            <div style="text-align: right;">{{item['created_date']}}</div>
+                </div>
+            </div>
+        </div>
+        <p><span id="more-134"></span></p>
+        </div>
+        </div>
 </p>
 {% endfor %}
 {% endblock %}

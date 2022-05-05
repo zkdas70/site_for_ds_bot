@@ -6,10 +6,11 @@
     {% if status != None %}
         {{ status }}
     {% endif %}
-    {{ username }}<br>
-    {{ coins }}<br>
+    <h1>Сервера</h1>
     {% for item in servers %}
+    <div  style="border: 1px solid #e9e8e8; border-radius: 3px; margin-bottom: 1rem; padding: 5px; margin: 5px">
         <h2>{{item}}</h2>
+            <div style="padding: 5px; margin: 5px">кололичество монет: {{servers[item]['server_coins']}}</div>
             <div class="dropdown{{servers[item]['server_id']}}">
                 {% if servers[item]['server_id'] == buy_role_error %}
                     <div class="alert alert-danger" role="alert">Уведомление об опасности</div>
@@ -28,7 +29,7 @@
             <a class="btn btn-primary " href="/server_menejment/{{servers[item]['server_id']}}">Управление сервером</a>
         {% endif %}
                 </div>
-        <div>{{servers[item]['server_coins']}}</div>
+    </div>
     {% endfor %}
 </div>
 {% else %}
