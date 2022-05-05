@@ -4,28 +4,83 @@
 <h1>Управление сервером {{server_name}}</h1>
 
 <div>
-<h1>участники сервера</h1>
-{% for item in users %}
-                <div>{{item}}</div>
-            {% endfor %}
-<h1>задания сервера</h1>
-{% for item in tasks %}
-                <div>{{item}}
-                    <a href="/edit_tasks/{{item['id']}}/{{server_id}}" class="btn btn-secondary">изменить задание</a>
-                    {% if item['is_private'] %}
-                        <button type="button" class="btn btn-outline-info">удалить задание с сервера</button>
-                        <a href="/delete_tasks/{{item['id']}}/{{server_id}}" class="btn btn-danger">удалить задание</a>
-                    {% elif current_user.id == item['creator']%}
-                        <a href="/delete_tasks_from_server/{{item['id']}}/{{server_id}}" class="btn btn-info">удалить задание с сервера</a>
-                        <a href="/delete_tasks/{{item['id']}}/{{server_id}}" class="btn btn-danger">удалить задание</a>
-                    {% else %}
-                        <a href="/delete_tasks_from_server/{{item['id']}}/{{server_id}}" class="btn btn-info">удалить задание с сервера</a>
-                        <button type="button" class="btn btn-outline-danger">удалить задание с сервера</button>
-                    {% endif %}
-
+    <div class="row" style="margin: 5px">
+    <div class="col-sm-6"  style="border: 1px solid #e9e8e8; border-radius: 3px; margin-bottom: 1rem; padding: 5px; margin: 5px">
+        <h1>участники сервера</h1>
+        <div class="row">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-11">
+                {% for item in users %}
+                    <div>{{item}}</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-5"  style="border: 1px solid #e9e8e8; border-radius: 3px; margin-bottom: 1rem; padding: 5px; margin: 5px">
+        <h1>Роли сервера</h1>
+        <div class="row">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-11">
+                <div class="row">
+                    <div>
+                        название роли - цена <a href="/add_role/{{server_id}}">добавить</a>
+                    </div>
+                    </div>
+                {% for item in servers_roles %}
+                <div class="row">
+                    <div class="col-sm-6">
+                    {{item}} - {{servers_roles[item]}}
+                    </div>
+                    <div class="col-sm-6">
+                    <a href="/edit_role/{{server_id}}/{{item}}">изменить</a>
+                    <a href="/del_role/{{server_id}}/{{item}}">удалить</a>
+                    </div>
                 </div>
-                <br>
-            {% endfor %}
+                {% endfor %}
+
+
+            </div>
+        </div>
+    </div>
+    </div>
+    <h1>задания сервера</h1>
+    {% for item in tasks %}
+
+
+    <div style="border: 1px solid #e9e8e8; border-radius: 3px; margin-bottom: 1rem; padding: 5px;">
+        <h1>{{item['name']}}</h1>
+        <div  class="col-sm-12">
+            <p style="padding-left: 10px;">{{item['task']}}</p>
+            <p style="padding-left: 40px;">ответ: {{item['answer']}}</p>
+            <p style="text-align: right;">цена: {{item['coins']}}</p>
+        </div>
+        <div>
+            <div class="row">
+                <div class="col-sm-8">
+        <a href="/edit_tasks/{{item['id']}}/{{server_id}}" class="btn btn-secondary">изменить задание</a>
+        {% if item['is_private'] %}
+        <button type="button" class="btn btn-outline-info">удалить задание с сервера</button>
+        <a href="/delete_tasks/{{item['id']}}/{{server_id}}" class="btn btn-danger">удалить задание</a>
+        {% elif current_user.id == item['creator']%}
+        <a href="/delete_tasks_from_server/{{item['id']}}/{{server_id}}" class="btn btn-info">удалить задание с
+            сервера</a>
+        <a href="/delete_tasks/{{item['id']}}/{{server_id}}" class="btn btn-danger">удалить задание</a>
+        {% else %}
+        <a href="/delete_tasks_from_server/{{item['id']}}/{{server_id}}" class="btn btn-info">удалить задание с
+            сервера</a>
+        <button type="button" class="btn btn-outline-danger">удалить задание с сервера</button>
+        {% endif %}
+                </div>
+                <div class="col-sm-4">
+            <div style="padding-left: 40px; text-align: right;">создатель: {{item['creator']}} id: {{item['id']}}</div>
+            <div style="text-align: right;">{{item['created_date']}}</div>
+                </div>
+            </div>
+        </div>
+        <p><span id="more-134"></span></p>
+        </div>
+    {% endfor %}
     <a href="/add_tasks/{{server_id}}" class="btn btn-secondary">Добавить задание</a>
+
 </div>
 {% endblock %}

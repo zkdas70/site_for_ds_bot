@@ -8,6 +8,7 @@ from data.servers import Servers
 from data.users_to_servers import UsersToServers
 from data.task_to_servers import TaskToServers
 from forms.user import LoginFormDefault, RegisterFormDefault
+from forms.add_role import RolesForm
 from forms.task import TaskForm
 from flask_login import LoginManager, login_user, current_user, logout_user, \
     login_required
@@ -204,7 +205,7 @@ def add_tasks(server_id=None):
                     db_sess.commit()
                     return redirect(f'/server_menejment/{server_id}')
                 return render_template('access_denied.html')
-            return redirect('/')
+            return redirect('/public_tasks')
         return render_template('add_task.html', **param, title='Добавление задания', form=form)
     return redirect('/login')
 
@@ -260,7 +261,7 @@ def edit_tasks(task_id, server_id=None):
                     db_sess.commit()
                     if server_id:
                         return redirect(f'/server_menejment/{server_id}')
-                    return redirect(f'/')
+                    return redirect(f'/public_tasks')
                 param['task_cannot_be_changed'] = True
             return render_template('add_task.html', **param, title='изменить задания', form=form)
         return render_template('access_denied.html')
@@ -368,21 +369,57 @@ def buy_role(server_id, role):
     abort(404)
 
 
-@app.route('/add_role/<int:server_id>/<role>/<int:prise>')
+@app.route('/add_role/<int:server_id>', methods=['GET', 'POST'])
 @login_required
-def add_role(server_id, role, prise):
+def add_role(server_id):
     db_sess = db_session.create_session()
     is_admin = db_sess.query(UsersToServers).filter(UsersToServers.is_admin,
                                                     UsersToServers.users == current_user.id,
                                                     UsersToServers.server == server_id).first().is_admin
     if is_admin:
-        roles_price = db_sess.query(Servers).filter(Servers.id == server_id).first().roles_price
-        if role not in roles_price:
-            roles_price[role] = prise
-            db_sess.query(Servers).filter(Servers.id == server_id).first().roles_price = roles_price
-            db_sess.commit()
-            return redirect('/')
-        return redirect('/')
+        form = RolesForm()
+        if form.validate_on_submit():
+            server_answer = db_sess.query(Servers).filter(Servers.id == server_id).first()
+            name = form.name_role.data
+            cost = form.cost_role.data
+            server_roles = server_answer.roles_price
+            if name not in server_roles:
+                server_roles[name] = cost
+                db_sess = db_session.create_session()
+                db_sess.query(Servers).filter(Servers.id == server_id).first().roles_price = server_roles
+                db_sess.commit()
+                return redirect(f'/server_menejment/{server_id}')
+            abort(406)
+        return render_template('add_role.html', title='добавить роль', form=form)
+    return render_template('access_denied.html')
+
+
+@app.route('/edit_role/<int:server_id>/<role>', methods=['GET', 'POST'])
+@login_required
+def edit_role(server_id, role):
+    db_sess = db_session.create_session()
+    is_admin = db_sess.query(UsersToServers).filter(UsersToServers.is_admin,
+                                                    UsersToServers.users == current_user.id,
+                                                    UsersToServers.server == server_id).first().is_admin
+    if is_admin:
+        server_answer = db_sess.query(Servers).filter(Servers.id == server_id).first()
+        server_roles = server_answer.roles_price
+        if role in server_roles:
+            form = RolesForm()
+            param = dict()
+            param['value_cost_role'] = server_roles[role]
+            param['value_name_role'] = role
+            if form.validate_on_submit():
+                name = form.name_role.data
+                cost = form.cost_role.data
+                del server_roles[role]
+                server_roles[name] = cost
+                db_sess = db_session.create_session()
+                db_sess.query(Servers).filter(Servers.id == server_id).first().roles_price = server_roles
+                db_sess.commit()
+                return redirect(f'/server_menejment/{server_id}')
+            return render_template('add_role.html', **param, title='добавить роль', form=form)
+        abort(406)
     return render_template('access_denied.html')
 
 
@@ -397,7 +434,9 @@ def del_role(server_id, role):
         roles_price = db_sess.query(Servers).filter(Servers.id == server_id).first().roles_price
         if role in roles_price:
             del roles_price[role]
-            return redirect('/')
+            db_sess.query(Servers).filter(Servers.id == server_id).first().roles_price = roles_price
+            db_sess.commit()
+            return redirect(f'/server_menejment/{server_id}')
         abort(404)
     return render_template('access_denied.html')
 
@@ -416,9 +455,18 @@ def dive_admin_role(server_id, user_id):
     return render_template('access_denied.html')
 
 
-# @app.errorhandler(1)
-# def attribute_error():
-#     return redirect('/')
+@app.route('/redive_admin_role/<int:server_id>/<int:user_id>')
+@login_required
+def redive_admin_role(server_id, user_id):
+    db_sess = db_session.create_session()
+    is_admin = db_sess.query(UsersToServers).filter(UsersToServers.is_admin,
+                                                    UsersToServers.users == current_user.id,
+                                                    UsersToServers.server == server_id).first().is_admin
+    if is_admin:
+        db_sess.query(UsersToServers).filter(UsersToServers.users == user_id,
+                                             UsersToServers.server == server_id).first().is_admin = False
+        return redirect(f'/server_menejment/{server_id}')
+    return render_template('access_denied.html')
 
 
 @app.route('/refresh')

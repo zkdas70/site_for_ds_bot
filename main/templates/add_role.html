@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Добавление роль</h1>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.name_role.label }}<br>
+        {{ form.name_role(class="form-control", value=value_name_role)}}<br>
+        {% for error in form.name_role.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.cost_role.label }}<br>
+        {{ form.cost_role(class="form-control", value=value_cost_role) }}<br>
+        {% for error in form.cost_role.errors %}
+            <p content="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit(type="submit", class="btn btn-primary") }}
+        {% if server_id%}
+        <a class="btn btn-secondary" href="/server_menejment/{{server_id}}" role="button">управления сервером</a>
+        {% endif %}
+    </p>
+    {{message}}
+</form>
+{% endblock %}
