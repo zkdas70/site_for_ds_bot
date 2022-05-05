@@ -1,4 +1,3 @@
-import json
+import datetime
 
-print(json.dumps(['w'])
-)
+print((datetime.datetime.now() - datetime.datetime.now()) > datetime.timedelta(weeks=2))
