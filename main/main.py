@@ -150,7 +150,11 @@ def server_menejment(id):
             users = []
             tasks = []
             for user_id in db_sess.query(UsersToServers).filter(UsersToServers.server == id).all():
-                users.append(f'{db_sess.query(UsersDefault).filter(UsersDefault.id == user_id.users).first().name}')
+                users.append({
+                    'id': user_id.users,
+                    'name': str(db_sess.query(UsersDefault).filter(UsersDefault.id == user_id.users).first().name),
+                    'is_admin': user_id.is_admin,
+                })
             for tasks_to_server in db_sess.query(TaskToServers).filter(TaskToServers.server == id).all():
                 task = dict()
                 task_answer = db_sess.query(Tasks).filter(Tasks.id == tasks_to_server.task).first()
@@ -451,6 +455,7 @@ def dive_admin_role(server_id, user_id):
     if is_admin:
         db_sess.query(UsersToServers).filter(UsersToServers.users == user_id,
                                              UsersToServers.server == server_id).first().is_admin = True
+        db_sess.commit()
         return redirect(f'/server_menejment/{server_id}')
     return render_template('access_denied.html')
 
@@ -465,6 +470,7 @@ def redive_admin_role(server_id, user_id):
     if is_admin:
         db_sess.query(UsersToServers).filter(UsersToServers.users == user_id,
                                              UsersToServers.server == server_id).first().is_admin = False
+        db_sess.commit()
         return redirect(f'/server_menejment/{server_id}')
     return render_template('access_denied.html')
 

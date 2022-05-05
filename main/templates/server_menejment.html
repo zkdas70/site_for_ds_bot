@@ -11,7 +11,14 @@
             <div class="col-sm-1"></div>
             <div class="col-sm-11">
                 {% for item in users %}
-                    <div>{{item}}</div>
+                    <div>
+                        {{item['name']}}
+                    {% if item['is_admin'] and item['id'] != current_user.id %}
+                        <a href="/redive_admin_role/{{server_id}}/{{item['id']}}">забрать админку</a>
+                    {% elif not item['is_admin'] %}
+                        <a href="/dive_admin_role/{{server_id}}/{{item['id']}}">дать админку</a>
+                    {% endif %}
+                    </div>
                 {% endfor %}
             </div>
         </div>
