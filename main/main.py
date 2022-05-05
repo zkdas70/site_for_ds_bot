@@ -16,6 +16,7 @@ import datetime
 import json
 
 DEBAG = False
+LAST_REFRESH = datetime.datetime.now()
 
 
 def generate_secret_key():
@@ -477,8 +478,12 @@ def redive_admin_role(server_id, user_id):
 
 @app.route('/refresh')
 def refresh():
-    app.config['SECRET_KEY'] = generate_secret_key()
-    return 'refresh completed'
+    global LAST_REFRESH
+    if (LAST_REFRESH - datetime.datetime.now()) > datetime.timedelta(weeks=2):
+        app.config['SECRET_KEY'] = generate_secret_key()
+        LAST_REFRESH = datetime.datetime.now()
+        return 'refresh completed'
+    abort(425)
 
 
 def main():
