@@ -326,7 +326,8 @@ def public_tasks():
             task['created_date'] = task_answer.created_date
             tasks.append(task)
         param['tasks'] = tasks
-        for server_answer in db_sess.query(UsersToServers).filter(UsersToServers.is_admin == True).all():
+        for server_answer in db_sess.query(UsersToServers).filter(UsersToServers.is_admin,
+                                                                  UsersToServers.users == current_user.id).all():
             server = dict()
             server['server_name'] = db_sess.query(Servers).filter(Servers.id == server_answer.server).first().name
             server['server_id'] = server_answer.server
@@ -362,12 +363,12 @@ def buy_role(server_id, role):
         user = db_sess.query(UsersToServers).filter(UsersToServers.server == server_id,
                                                     UsersToServers.users == user_id).first()
         if user and server.roles_price[role] <= user.coins:
-            user_coins = user.coins - server.roles_price[role]
+            user_coins = user.coins - abs(server.roles_price[role])
             user_roles = set(user.roles)
             user_roles.add(role)
             user_commit = db_sess.query(UsersToServers).filter(UsersToServers.server == server_id,
                                                                UsersToServers.users == user_id).first()
-            user_commit.roles = user_roles
+            user_commit.roles = list(user_roles)
             user_commit.coins = user_coins
             db_sess.commit()
         return redirect('/')
@@ -384,9 +385,12 @@ def add_role(server_id):
     if is_admin:
         form = RolesForm()
         if form.validate_on_submit():
+            if form.cost_role.data < 0:
+                return render_template('add_role.html', title='добавить роль', form=form,
+                                       message="роль не может стоить меньше 0")
             server_answer = db_sess.query(Servers).filter(Servers.id == server_id).first()
             name = form.name_role.data
-            cost = form.cost_role.data
+            cost = abs(form.cost_role.data)
             server_roles = server_answer.roles_price
             if name not in server_roles:
                 server_roles[name] = cost
