@@ -25,8 +25,8 @@
 
 
             {% if current_user.id == item['creator'] %}
-                <a href="/edit_tasks/{{item['id']}}/{{servers['server_id']}}" class="btn btn-secondary">изменить задание</a>
-                <a href="/delete_tasks/{{item['id']}}/{{servers['server_id']}}" class="btn btn-danger">удалить задание</a>
+                <a href="/edit_tasks/{{item['id']}}" class="btn btn-secondary">изменить задание</a>
+                <a href="/delete_tasks/{{item['id']}}" class="btn btn-danger">удалить задание</a>
             {% endif %}
                 </div>
                 <div class="col-sm-4">

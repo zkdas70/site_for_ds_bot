@@ -291,7 +291,7 @@ def delete_tasks(task_id, server_id=None, is_deleting_only_from_server=None):
         db_sess.commit()
         if server_id:
             return redirect(f'/server_menejment/{server_id}')
-        return redirect(f'/')
+        return redirect(f'/public_tasks')
     abort(404)
 
 
